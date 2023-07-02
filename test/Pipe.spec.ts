@@ -17,11 +17,46 @@ describe('Pipe', () => {
         expect(result).to.be.undefined
     })
 
-    it('should receive callback result of first pipe', () => {
+    it('should pass the callback return data to the next pipe', () => {
         const spyCall = spy()
         pipe(() => 'myArgs')
             .pipe(spyCall)
             .get()
         assert.calledWith(spyCall, 'myArgs')
+    })
+
+    it('should catch the error', () => {
+        const catcherSpy = spy()
+        const error = new Error('Some error...')
+        pipe(() => {
+            throw error
+        })
+            .catch(catcherSpy)
+            .get()
+        assert.calledWith(catcherSpy, error)
+    })
+
+    it('should not call the next pipe after error', () => {
+        const pipeSpy = spy()
+        const error = new Error('Some error...')
+        pipe(() => {
+            throw error
+        })
+            .catch(() => {}) // eslint-disable-line
+            .pipe(pipeSpy) // eslint-disable-line
+            .get()
+        assert.notCalled(pipeSpy)
+    })
+
+    it('should call the next pipe after error', () => {
+        const pipeSpy = spy()
+        const error = new Error('Some error...')
+        pipe(() => {
+            throw error
+        })
+            .catch(() => {}, { keepGoing: true }) // eslint-disable-line
+            .pipe(pipeSpy) // eslint-disable-line
+            .get()
+        assert.called(pipeSpy)
     })
 })
