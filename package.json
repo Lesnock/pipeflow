@@ -5,13 +5,21 @@
     "main": "dist/index.js",
     "author": "Caio Lesnock <caio.dev@outlook.com>",
     "license": "MIT",
+    "scripts": {
+        "test": "ts-mocha test/**/*.spec.ts"
+    },
     "devDependencies": {
+        "@types/chai": "^4.3.5",
+        "@types/mocha": "^10.0.1",
         "@typescript-eslint/eslint-plugin": "^5.60.1",
         "@typescript-eslint/parser": "^5.60.1",
+        "chai": "^4.3.7",
         "eslint": "^8.44.0",
         "eslint-config-prettier": "^8.8.0",
         "eslint-plugin-prettier": "^4.2.1",
+        "mocha": "^10.2.0",
         "prettier": "^2.8.8",
+        "ts-mocha": "^10.0.0",
         "typescript": "^5.1.6"
     }
 }
