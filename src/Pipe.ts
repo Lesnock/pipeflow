@@ -8,7 +8,7 @@ export class Pipe<T = any> {
     previousPipe: Pipe | null
 
     catchCallback: {
-        callback: PipeCatchCallback
+        callback: PipeCatchCallback<T>
         options: CatchOptions
     } | null
 
@@ -27,7 +27,7 @@ export class Pipe<T = any> {
         this.nextPipe = next
     }
 
-    get(): Promise<T> {
+    get<ReturnType = T>(): Promise<ReturnType> {
         return this.start()
     }
 
@@ -68,8 +68,8 @@ export class Pipe<T = any> {
         return pipe
     }
 
-    catch(
-        errorHandlingCallback: PipeCatchCallback,
+    catch<ReturnT = any>(
+        errorHandlingCallback: PipeCatchCallback<T, ReturnT>,
         options: Partial<CatchOptions> = {}
     ): this {
         const defaultOptions: CatchOptions = {
