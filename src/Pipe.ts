@@ -1,7 +1,7 @@
 import { PipeCallback, PipeCatchCallback, CatchOptions } from './types'
 
-export class Pipe {
-    callback: PipeCallback
+export class Pipe<T = any> {
+    callback: PipeCallback<T>
 
     nextPipe: Pipe | null
 
@@ -27,7 +27,7 @@ export class Pipe {
         this.nextPipe = next
     }
 
-    get(): Promise<unknown> {
+    get(): Promise<T> {
         return this.start()
     }
 
@@ -39,7 +39,7 @@ export class Pipe {
         }
     }
 
-    async process(previousData?: unknown): Promise<unknown> {
+    async process(previousData?: any): Promise<any> {
         try {
             const data = await this.callback(previousData)
             if (!this.nextPipe) {
@@ -61,7 +61,7 @@ export class Pipe {
         }
     }
 
-    pipe(callback: PipeCallback): Pipe {
+    pipe<TT = any>(callback: PipeCallback<TT>): Pipe<TT> {
         const pipe = new Pipe(callback)
         pipe.setPreviousPipe(this)
         this.setNextPipe(pipe)

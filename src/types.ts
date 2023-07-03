@@ -1,6 +1,3 @@
-export type PipeCallback<T = unknown> = (data?: T) => unknown
-export type PipeCatchCallback = (
-    err: Error,
-    data: unknown
-) => unknown | Promise<unknown>
+export type PipeCallback<T = any> = (data: T) => any
+export type PipeCatchCallback = (err: Error, data: any) => any | Promise<any>
 export type CatchOptions = { keepGoing: boolean }

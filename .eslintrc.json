@@ -14,10 +14,9 @@
         "ecmaVersion": "latest",
         "sourceType": "module"
     },
-    "plugins": [
-        "@typescript-eslint"
-    ],
+    "plugins": ["@typescript-eslint"],
     "rules": {
-        "prettier/prettier": "warn"
+        "prettier/prettier": "warn",
+        "@typescript-eslint/no-explicit-any": "off"
     }
 }

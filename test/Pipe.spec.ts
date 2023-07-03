@@ -56,8 +56,8 @@ describe('Pipe', () => {
     })
 
     it('should return the correct result', async () => {
-        const string = await pipe(() => 'abc')
-            .pipe(string => string.toUpperCase())
+        const string = await pipe<string>(() => 'abc')
+            .pipe<string>(string => string.toUpperCase())
             .get()
         expect(string).to.be.equals('ABC')
     })
