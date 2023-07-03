@@ -1,5 +1,5 @@
 {
-    "name": "pipeflow",
+    "name": "pipeflow.js",
     "version": "0.1.0",
     "description": "Write beautiful code using a super dynamic pipe chain",
     "main": "dist/index.js",
