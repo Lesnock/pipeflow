@@ -61,7 +61,7 @@ export class Pipe<T = any> {
         }
     }
 
-    pipe<TT = any>(callback: PipeCallback<TT>): Pipe<TT> {
+    pipe<TT = any>(callback: PipeCallback<T>): Pipe<TT> {
         const pipe = new Pipe(callback)
         pipe.setPreviousPipe(this)
         this.setNextPipe(pipe)
