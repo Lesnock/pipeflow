@@ -1,35 +1,29 @@
 import { pipe, Pipe } from '../src'
 import { expect } from 'chai'
 import { assert, spy } from 'sinon'
-import { runSync } from '../src/utils'
 
 describe('Pipe', () => {
     it('returns a Pipe object', () => {
         expect(pipe(() => '')).to.instanceOf(Pipe)
     })
 
-    it('returns callback result on calling get', () => {
-        const result = pipe(() => 'callbackResult').get()
+    it('returns callback result on calling get', async () => {
+        const result = await pipe(() => 'callbackResult').get()
         expect(result).to.be.equal('callbackResult')
     })
 
-    it('not returns callback result on calling finish', () => {
-        const result = pipe(() => 'callbackResult').finish()
-        expect(result).to.be.undefined
-    })
-
-    it('should pass the callback return data to the next pipe', () => {
+    it('should pass the callback return data to the next pipe', async () => {
         const spyCall = spy()
-        pipe(() => 'myArgs')
+        await pipe(() => 'myArgs')
             .pipe(spyCall)
             .get()
         assert.calledWith(spyCall, 'myArgs')
     })
 
-    it('should catch the error', () => {
+    it('should catch the error', async () => {
         const catcherSpy = spy()
         const error = new Error('Some error...')
-        pipe(() => {
+        await pipe(() => {
             throw error
         })
             .catch(catcherSpy)
@@ -37,10 +31,10 @@ describe('Pipe', () => {
         assert.calledWith(catcherSpy, error)
     })
 
-    it('should not call the next pipe after error', () => {
+    it('should not call the next pipe after error', async () => {
         const pipeSpy = spy()
         const error = new Error('Some error...')
-        pipe(() => {
+        await pipe(() => {
             throw error
         })
             .catch(() => {}) // eslint-disable-line
@@ -49,10 +43,10 @@ describe('Pipe', () => {
         assert.notCalled(pipeSpy)
     })
 
-    it('should call the next pipe after error', () => {
+    it('should call the next pipe after error', async () => {
         const pipeSpy = spy()
         const error = new Error('Some error...')
-        pipe(() => {
+        await pipe(() => {
             throw error
         })
             .catch(() => {}, { keepGoing: true }) // eslint-disable-line
@@ -61,24 +55,5 @@ describe('Pipe', () => {
         assert.called(pipeSpy)
     })
 
-    it.only('should resolve promise before keep going', () => {
-        const resultSync = runSync(
-            () =>
-                new Promise(res =>
-                    setTimeout(() => {
-                        console.log('set timeout')
-                        res(true)
-                    }, 500)
-                ),
-            5000
-        )
-        console.log('result Sn', resultSync)
-        // pipe(
-        //     () =>
-        //         new Promise(res => {
-        //             console.log('aqui ó')
-        //             res(true)
-        //         })
-        // ).get()
-    })
+    // it('should resolve promise before keep going', () => {})
 })
