@@ -82,7 +82,7 @@ describe('Pipe', () => {
     it('should run pipeIf', async () => {
         const string = await pipe<string>(() => 'abc')
             .pipe<string>(string => string.toUpperCase())
-            .pipeIf<string>(true, data => `${data}alterado`)
+            .pipeIf(true, data => `${data}alterado`)
             .pipe(data => data.toUpperCase())
             .get()
         expect(string).to.be.equals('ABCALTERADO')

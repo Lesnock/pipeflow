@@ -81,14 +81,14 @@ export class Pipe<T = any> {
         }
     }
 
-    pipe<ReturnType = any>(callback: PipeCallback<T>): Pipe<ReturnType> {
+    pipe<ReturnType = T>(callback: PipeCallback<T>): Pipe<ReturnType> {
         const pipe = new Pipe<ReturnType>(callback)
         pipe.setPreviousPipe(this)
         this.setNextPipe(pipe)
         return pipe
     }
 
-    pipeIf<ReturnType = any>(
+    pipeIf<ReturnType = T>(
         condition: Condition<T>,
         callback: PipeCallback<T>
     ): Pipe<ReturnType> {
