@@ -55,7 +55,7 @@ describe('Pipe', () => {
         assert.called(pipeSpy)
     })
 
-    it('should return the correct result', async () => {
+    it('should return the string in uppercase', async () => {
         const string = await pipe<string>(() => 'abc')
             .pipe<string>(string => string.toUpperCase())
             .get()
