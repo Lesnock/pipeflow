@@ -1,6 +1,7 @@
 import { pipe, Pipe } from '../src'
 import { expect } from 'chai'
 import { assert, spy } from 'sinon'
+import { runSync } from '../src/utils'
 
 describe('Pipe', () => {
     it('returns a Pipe object', () => {
@@ -58,5 +59,26 @@ describe('Pipe', () => {
             .pipe(pipeSpy) // eslint-disable-line
             .get()
         assert.called(pipeSpy)
+    })
+
+    it.only('should resolve promise before keep going', () => {
+        const resultSync = runSync(
+            () =>
+                new Promise(res =>
+                    setTimeout(() => {
+                        console.log('set timeout')
+                        res(true)
+                    }, 500)
+                ),
+            5000
+        )
+        console.log('result Sn', resultSync)
+        // pipe(
+        //     () =>
+        //         new Promise(res => {
+        //             console.log('aqui ó')
+        //             res(true)
+        //         })
+        // ).get()
     })
 })

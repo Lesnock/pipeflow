@@ -4,13 +4,20 @@ import {
     PipeCallback,
     PipeCatchCallback,
     CatchOptions,
-} from './PipeInterface'
+    PipeOptions,
+} from './types'
+import { runSync } from './utils'
 
 export class Pipe implements PipeInterface {
     /**
      * The callback function that should be executed by the pipeflow.
      */
     callback: PipeCallback
+
+    /**
+     * Pipe Options
+     */
+    options: PipeOptions
 
     /**
      * The data coming from the last pipe.
@@ -35,6 +42,7 @@ export class Pipe implements PipeInterface {
         this.callback = callback
         this.earlierData = earlierData
         this.catchCallback = null
+        this.options = { asyncTimeout: 10_000 } // 10 seconds
     }
 
     /**
@@ -43,7 +51,12 @@ export class Pipe implements PipeInterface {
      */
     get(): unknown {
         try {
-            return this.callback(this.earlierData)
+            const result = this.callback(this.earlierData)
+            // If it's a promise, resolve it synchronously
+            result.then(value => console.log('bbb', value))
+            return result instanceof Promise
+                ? runSync(result, this.options.asyncTimeout)
+                : result
         } catch (err) {
             if (!this.catchCallback) {
                 throw err
@@ -67,7 +80,16 @@ export class Pipe implements PipeInterface {
      * Executes the callback function and send it to the next pipe.
      * In practice, creates a new Pipe object.
      */
-    pipe(callback: PipeCallback): PipeInterface {
+    pipe(
+        callback: PipeCallback,
+        options?: Partial<PipeOptions>
+    ): PipeInterface {
+        if (options) {
+            this.options = {
+                ...this.options,
+                ...options,
+            }
+        }
         const result = this.get()
         if (this.stop) {
             return new FakePipe()

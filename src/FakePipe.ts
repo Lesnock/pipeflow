@@ -1,4 +1,4 @@
-import { PipeInterface, PipeCallback, PipeCatchCallback } from './PipeInterface'
+import { PipeInterface, PipeCallback, PipeCatchCallback } from './types'
 
 /**
  * FakePipe
