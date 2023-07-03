@@ -3,6 +3,7 @@ import {
     PipeCatchCallback,
     CatchOptions,
     Condition,
+    PipeOptions,
 } from './types'
 
 export class Pipe<T = any> {
@@ -20,11 +21,18 @@ export class Pipe<T = any> {
         options: CatchOptions
     } | null
 
-    constructor(callback: PipeCallback, condition: Condition = true) {
+    options: PipeOptions
+
+    constructor(
+        callback: PipeCallback,
+        condition: Condition = true,
+        options: Partial<PipeOptions> = {}
+    ) {
         this.callback = { callback, condition }
         this.catchCallback = null
         this.nextPipe = null
         this.previousPipe = null
+        this.options = { ...this.getPipeDefaultOptions(), ...options }
     }
 
     setPreviousPipe(previous: Pipe) {
@@ -54,7 +62,7 @@ export class Pipe<T = any> {
                 : this.callback.condition
 
         if (!checkCondition) {
-            if (!this.nextPipe) {
+            if (!this.nextPipe || this.options.stopOnFalse) {
                 return previousData
             }
             return await this.nextPipe.process(previousData)
@@ -82,7 +90,7 @@ export class Pipe<T = any> {
     }
 
     pipe<ReturnType = T>(callback: PipeCallback<T>): Pipe<ReturnType> {
-        const pipe = new Pipe<ReturnType>(callback)
+        const pipe = new Pipe<ReturnType>(callback, true)
         pipe.setPreviousPipe(this)
         this.setNextPipe(pipe)
         return pipe
@@ -90,9 +98,10 @@ export class Pipe<T = any> {
 
     pipeIf<ReturnType = T>(
         condition: Condition<T>,
-        callback: PipeCallback<T>
+        callback: PipeCallback<T>,
+        options?: Partial<PipeOptions>
     ): Pipe<ReturnType> {
-        const pipe = new Pipe<ReturnType>(callback, condition)
+        const pipe = new Pipe<ReturnType>(callback, condition, options)
         pipe.setPreviousPipe(this)
         this.setNextPipe(pipe)
         return pipe
@@ -102,13 +111,26 @@ export class Pipe<T = any> {
         errorHandlingCallback: PipeCatchCallback<T, ReturnT>,
         options: Partial<CatchOptions> = {}
     ): this {
-        const defaultOptions: CatchOptions = {
-            keepGoing: false,
+        const catchOptions: CatchOptions = {
+            ...this.getCatchDefaultOptions(),
+            ...options,
         }
         this.catchCallback = {
             callback: errorHandlingCallback,
-            options: { ...defaultOptions, ...options },
+            options: catchOptions,
         }
         return this
+    }
+
+    private getCatchDefaultOptions(): CatchOptions {
+        return {
+            keepGoing: false,
+        }
+    }
+
+    private getPipeDefaultOptions(): PipeOptions {
+        return {
+            stopOnFalse: true,
+        }
     }
 }

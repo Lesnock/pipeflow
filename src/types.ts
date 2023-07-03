@@ -5,3 +5,4 @@ export type PipeCatchCallback<T = any, ReturnT = void> = (
 ) => ReturnT
 export type CatchOptions = { keepGoing: boolean }
 export type Condition<T = any> = boolean | ((data: T) => boolean)
+export type PipeOptions = { stopOnFalse: boolean }

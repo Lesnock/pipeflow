@@ -71,7 +71,7 @@ describe('Pipe', () => {
         expect(string).to.be.equals('ABC')
     })
 
-    it('should stop on pipeIf', async () => {
+    it('should not run pipeIf', async () => {
         const string = await pipe<string>(() => 'abc')
             .pipe<string>(string => string.toUpperCase())
             .pipeIf(false, data => `${data}ALTERADO`)
@@ -86,5 +86,23 @@ describe('Pipe', () => {
             .pipe(data => data.toUpperCase())
             .get()
         expect(string).to.be.equals('ABCALTERADO')
+    })
+
+    it('should not stop on pipeIf', async () => {
+        const pipeSpy = spy()
+        await pipe<string>(() => 'abc')
+            .pipeIf(false, () => null, { stopOnFalse: false })
+            .pipe(pipeSpy)
+            .get()
+        assert.called(pipeSpy)
+    })
+
+    it('should stop on pipeIf', async () => {
+        const pipeSpy = spy()
+        await pipe<string>(() => 'abc')
+            .pipeIf(false, () => null, { stopOnFalse: true })
+            .pipe(pipeSpy)
+            .get()
+        assert.notCalled(pipeSpy)
     })
 })

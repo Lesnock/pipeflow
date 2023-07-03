@@ -1,6 +1,6 @@
 {
     "name": "pipeflow.js",
-    "version": "0.3.3",
+    "version": "0.3.4",
     "description": "Write beautiful code using a super dynamic pipe chain",
     "main": "dist/index.js",
     "author": "Caio Lesnock <caio.dev@outlook.com>",
@@ -9,7 +9,8 @@
         "access": "public"
     },
     "scripts": {
-        "test": "ts-mocha test/**/*.spec.ts"
+        "test": "ts-mocha test/**/*.spec.ts",
+        "build": "tsc"
     },
     "devDependencies": {
         "@types/chai": "^4.3.5",
