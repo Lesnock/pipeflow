@@ -1,7 +1,15 @@
-import { PipeCallback, PipeCatchCallback, CatchOptions } from './types'
+import {
+    PipeCallback,
+    PipeCatchCallback,
+    CatchOptions,
+    Condition,
+} from './types'
 
 export class Pipe<T = any> {
-    callback: PipeCallback<T>
+    callback: {
+        callback: PipeCallback<T>
+        condition: Condition<T>
+    }
 
     nextPipe: Pipe | null
 
@@ -12,8 +20,8 @@ export class Pipe<T = any> {
         options: CatchOptions
     } | null
 
-    constructor(callback: PipeCallback) {
-        this.callback = callback
+    constructor(callback: PipeCallback, condition: Condition = true) {
+        this.callback = { callback, condition }
         this.catchCallback = null
         this.nextPipe = null
         this.previousPipe = null
@@ -40,8 +48,20 @@ export class Pipe<T = any> {
     }
 
     async process(previousData?: any): Promise<any> {
+        const checkCondition =
+            typeof this.callback.condition == 'function'
+                ? this.callback.condition(previousData)
+                : this.callback.condition
+
+        if (!checkCondition) {
+            if (!this.nextPipe) {
+                return previousData
+            }
+            return await this.nextPipe.process(previousData)
+        }
+
         try {
-            const data = await this.callback(previousData)
+            const data = await this.callback.callback(previousData)
             if (!this.nextPipe) {
                 return data
             }
@@ -61,8 +81,18 @@ export class Pipe<T = any> {
         }
     }
 
-    pipe<TT = any>(callback: PipeCallback<T>): Pipe<TT> {
-        const pipe = new Pipe(callback)
+    pipe<ReturnType = any>(callback: PipeCallback<T>): Pipe<ReturnType> {
+        const pipe = new Pipe<ReturnType>(callback)
+        pipe.setPreviousPipe(this)
+        this.setNextPipe(pipe)
+        return pipe
+    }
+
+    pipeIf<ReturnType = any>(
+        condition: Condition<T>,
+        callback: PipeCallback<T>
+    ): Pipe<ReturnType> {
+        const pipe = new Pipe<ReturnType>(callback, condition)
         pipe.setPreviousPipe(this)
         this.setNextPipe(pipe)
         return pipe
