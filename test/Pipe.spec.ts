@@ -55,5 +55,10 @@ describe('Pipe', () => {
         assert.called(pipeSpy)
     })
 
-    // it('should resolve promise before keep going', () => {})
+    it('should return the correct result', async () => {
+        const string = await pipe(() => 'abc')
+            .pipe(string => string.toUpperCase())
+            .get()
+        expect(string).to.be.equals('ABC')
+    })
 })

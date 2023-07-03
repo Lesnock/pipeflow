@@ -1,91 +1,44 @@
-import {
-    PipeCallback,
-    PipeCatchCallback,
-    CatchOptions,
-    PipeOptions,
-} from './types'
+import { PipeCallback, PipeCatchCallback, CatchOptions } from './types'
 
 export class Pipe {
-    /**
-     * The callback function that should be executed by the pipeflow.
-     */
     callback: PipeCallback
 
-    /**
-     * Pipe Options
-     */
-    options: PipeOptions
-
-    /**
-     * The data coming from the last pipe.
-     * If this is the first pipe, this property will be undefined.
-     */
-    previousData: unknown
-
-    /**
-     * The next pipe.
-     * The next pipe will only be executed after this pipe is executed.
-     */
     nextPipe: Pipe | null
 
-    /**
-     * The previous pipe.
-     */
     previousPipe: Pipe | null
 
-    /**
-     * Callback that should be runned on failure
-     */
     catchCallback: {
         callback: PipeCatchCallback
         options: CatchOptions
     } | null
 
-    /**
-     * Should stop the pipe
-     */
-    stop = false
-
     constructor(callback: PipeCallback) {
         this.callback = callback
-        this.previousData = undefined
         this.catchCallback = null
-        this.options = { asyncTimeout: 10_000 } // 10 seconds
         this.nextPipe = null
         this.previousPipe = null
     }
 
-    /**
-     * Set the previous pipe.
-     */
     setPreviousPipe(previous: Pipe) {
         this.previousPipe = previous
     }
 
-    /**
-     * Set the next pipe.
-     */
     setNextPipe(next: Pipe) {
         this.nextPipe = next
     }
 
-    /**
-     * Executes the callback function and returns the result
-     * This method "breaks" the pipeflow
-     */
-    get(): Promise<unknown> | void {
+    get(): Promise<unknown> {
+        return this.start()
+    }
+
+    start() {
         if (this.previousPipe) {
-            this.previousPipe.get()
+            return this.previousPipe.get()
         } else {
             return this.process()
         }
     }
 
-    /**
-     * Process the entire pipe.
-     * One pipe will call another until there is no more pipes to process.
-     * In case of thrown errors, the catchCallback function will be executed.
-     */
     async process(previousData?: unknown): Promise<unknown> {
         try {
             const data = await this.callback(previousData)
@@ -108,10 +61,6 @@ export class Pipe {
         }
     }
 
-    /**
-     * Executes the callback function and send it to the next pipe.
-     * In practice, creates a new Pipe object.
-     */
     pipe(callback: PipeCallback): Pipe {
         const pipe = new Pipe(callback)
         pipe.setPreviousPipe(this)
@@ -119,10 +68,6 @@ export class Pipe {
         return pipe
     }
 
-    /**
-     * Add a catch callback.
-     * This callback is going to be executed in case the callback function of pipe throws some error.
-     */
     catch(
         errorHandlingCallback: PipeCatchCallback,
         options: Partial<CatchOptions> = {}
