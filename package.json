@@ -5,6 +5,9 @@
     "main": "dist/index.js",
     "author": "Caio Lesnock <caio.dev@outlook.com>",
     "license": "MIT",
+    "engines": {
+        "node": ">=8.0.0"
+    },
     "scripts": {
         "test": "ts-mocha test/**/*.spec.ts"
     },
