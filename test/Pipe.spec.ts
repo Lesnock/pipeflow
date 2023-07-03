@@ -61,4 +61,13 @@ describe('Pipe', () => {
             .get()
         expect(string).to.be.equals('ABC')
     })
+
+    it('should work with async functions', async () => {
+        const string = await pipe<string>(
+            () => new Promise(res => setTimeout(() => res('abc'), 500))
+        )
+            .pipe<string>(string => string.toUpperCase())
+            .get()
+        expect(string).to.be.equals('ABC')
+    })
 })
