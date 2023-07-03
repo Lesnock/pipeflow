@@ -11,5 +11,5 @@
         "noImplicitAny": false,
         "skipLibCheck": true
     },
-    "exclude": ["test"]
+    "exclude": ["test", "dist"]
 }
