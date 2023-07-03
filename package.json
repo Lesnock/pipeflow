@@ -5,9 +5,6 @@
     "main": "dist/index.js",
     "author": "Caio Lesnock <caio.dev@outlook.com>",
     "license": "MIT",
-    "engines": {
-        "node": ">=8.0.0"
-    },
     "publishConfig": {
         "access": "public"
     },
@@ -25,7 +22,6 @@
         "eslint-config-prettier": "^8.8.0",
         "eslint-plugin-prettier": "^4.2.1",
         "mocha": "^10.2.0",
-        "np": "^8.0.4",
         "prettier": "^2.8.8",
         "sinon": "^15.2.0",
         "ts-mocha": "^10.0.0",
