@@ -5,7 +5,6 @@ import {
     Condition,
     PipeOptions,
     PromiseResult,
-    TipoDeRetorno,
 } from './types'
 
 export class Pipe<InjectType = any, ExportType = any> {

@@ -11,6 +11,3 @@ export type Condition<ArgumentType = any> =
     | boolean
     | ((data: ArgumentType) => boolean)
 export type PipeOptions = { stopOnFalse: boolean }
-export type TipoDeRetorno<T extends CatchOptions> = T['keepGoing'] extends false
-    ? 'this'
-    : 'number'
