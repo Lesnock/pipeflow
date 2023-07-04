@@ -4,12 +4,14 @@ import {
     CatchOptions,
     Condition,
     PipeOptions,
+    PromiseResult,
+    TipoDeRetorno,
 } from './types'
 
-export class Pipe<T = any> {
+export class Pipe<InjectType = any, ExportType = any> {
     callback: {
-        callback: PipeCallback<T>
-        condition: Condition<T>
+        callback: PipeCallback<InjectType, ExportType>
+        condition: Condition<InjectType>
     }
 
     nextPipe: Pipe | null
@@ -17,7 +19,7 @@ export class Pipe<T = any> {
     previousPipe: Pipe | null
 
     catchCallback: {
-        callback: PipeCatchCallback<T>
+        callback: PipeCatchCallback<ExportType>
         options: CatchOptions
     } | null
 
@@ -43,7 +45,7 @@ export class Pipe<T = any> {
         this.nextPipe = next
     }
 
-    get<ReturnType = T>(): Promise<ReturnType> {
+    get<ReturnType = ExportType>(): Promise<ReturnType> {
         return this.start()
     }
 
@@ -89,28 +91,38 @@ export class Pipe<T = any> {
         }
     }
 
-    pipe<ReturnType = T>(callback: PipeCallback<T>): Pipe<ReturnType> {
-        const pipe = new Pipe<ReturnType>(callback, true)
+    pipe<NextPipeExportType = any>(
+        callback: PipeCallback<ExportType, NextPipeExportType>
+    ): Pipe<ExportType, PromiseResult<NextPipeExportType>> {
+        const pipe = new Pipe<ExportType, PromiseResult<NextPipeExportType>>(
+            callback,
+            true
+        )
         pipe.setPreviousPipe(this)
         this.setNextPipe(pipe)
         return pipe
     }
 
-    pipeIf<ReturnType = T>(
-        condition: Condition<T>,
-        callback: PipeCallback<T>,
+    pipeIf<NextPipeExportType = any>(
+        condition: Condition<ExportType>,
+        callback: PipeCallback<ExportType, NextPipeExportType>,
         options?: Partial<PipeOptions>
-    ): Pipe<ReturnType> {
-        const pipe = new Pipe<ReturnType>(callback, condition, options)
+    ): Pipe<ExportType, PromiseResult<NextPipeExportType>> {
+        const pipe = new Pipe<ExportType, PromiseResult<NextPipeExportType>>(
+            callback,
+            condition,
+            options
+        )
         pipe.setPreviousPipe(this)
         this.setNextPipe(pipe)
         return pipe
     }
 
-    catch<ReturnT = any>(
-        errorHandlingCallback: PipeCatchCallback<T, ReturnT>,
-        options: Partial<CatchOptions> = {}
-    ): this {
+    catch(errorHandlingCallback: PipeCatchCallback<ExportType>): this
+    catch<ReturnType>(errorHandlingCallback: PipeCatchCallback<ExportType, ReturnType>, options: CatchOptions & { keepGoing: false } ): this // prettier-ignore
+    catch<ReturnType>(errorHandlingCallback: PipeCatchCallback<ExportType, ReturnType>, options: CatchOptions & { keepGoing: true } ): Pipe<InjectType, ReturnType> // prettier-ignore
+    // prettier-ignore
+    catch<ReturnType>(errorHandlingCallback: PipeCatchCallback<ExportType, ReturnType>, options?: CatchOptions & { keepGoing?: boolean } ): this | Pipe<InjectType, ReturnType> {
         const catchOptions: CatchOptions = {
             ...this.getCatchDefaultOptions(),
             ...options,
@@ -119,7 +131,10 @@ export class Pipe<T = any> {
             callback: errorHandlingCallback,
             options: catchOptions,
         }
-        return this
+        if (!catchOptions.keepGoing) {
+            return this
+        }
+        return this as unknown as Pipe<InjectType, ReturnType>
     }
 
     private getCatchDefaultOptions(): CatchOptions {

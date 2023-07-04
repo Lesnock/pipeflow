@@ -56,24 +56,24 @@ describe('Pipe', () => {
     })
 
     it('should return the string in uppercase', async () => {
-        const string = await pipe<string>(() => 'abc')
-            .pipe<string>(string => string.toUpperCase())
-            .get<string>()
+        const string = await pipe(() => 'abc')
+            .pipe(string => string.toUpperCase())
+            .get()
         expect(string).to.be.equals('ABC')
     })
 
     it('should work with async functions', async () => {
-        const string = await pipe<string>(
+        const string = await pipe<Promise<string>>(
             () => new Promise(res => setTimeout(() => res('abc'), 500))
         )
-            .pipe<string>(string => string.toUpperCase())
+            .pipe(string => string.toUpperCase())
             .get()
         expect(string).to.be.equals('ABC')
     })
 
     it('should not run pipeIf', async () => {
-        const string = await pipe<string>(() => 'abc')
-            .pipe<string>(string => string.toUpperCase())
+        const string = await pipe(() => 'abc')
+            .pipe(string => string.toUpperCase())
             .pipeIf(false, data => `${data}ALTERADO`)
             .get()
         expect(string).to.be.equals('ABC')
@@ -99,7 +99,7 @@ describe('Pipe', () => {
 
     it('should stop on pipeIf', async () => {
         const pipeSpy = spy()
-        await pipe<string>(() => 'abc')
+        await pipe(() => 'abc')
             .pipeIf(false, () => null, { stopOnFalse: true })
             .pipe(pipeSpy)
             .get()

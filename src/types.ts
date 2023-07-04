@@ -1,8 +1,16 @@
-export type PipeCallback<T = any> = (data: T) => any
-export type PipeCatchCallback<T = any, ReturnT = void> = (
+export type PromiseResult<T> = T extends Promise<infer Type> ? Type : T
+export type PipeCallback<ArgumentType = any, ReturnType = any> = (
+    data: ArgumentType
+) => ReturnType
+export type PipeCatchCallback<ArgumentType = any, ReturnType = any> = (
     err: Error,
-    data: T
-) => ReturnT
+    data: ArgumentType
+) => ReturnType
 export type CatchOptions = { keepGoing: boolean }
-export type Condition<T = any> = boolean | ((data: T) => boolean)
+export type Condition<ArgumentType = any> =
+    | boolean
+    | ((data: ArgumentType) => boolean)
 export type PipeOptions = { stopOnFalse: boolean }
+export type TipoDeRetorno<T extends CatchOptions> = T['keepGoing'] extends false
+    ? 'this'
+    : 'number'

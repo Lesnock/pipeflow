@@ -1,8 +1,10 @@
 import { Pipe } from './Pipe'
-import type { PipeCallback } from './types'
+import type { PipeCallback, PromiseResult } from './types'
 
-export function pipe<T>(callback: PipeCallback<T>): Pipe<T> {
-    return new Pipe<T>(callback)
+export function pipe<ExportType = any>(
+    callback: PipeCallback<undefined, ExportType>
+): Pipe<undefined, PromiseResult<ExportType>> {
+    return new Pipe<undefined, PromiseResult<ExportType>>(callback)
 }
 
 export { Pipe }
