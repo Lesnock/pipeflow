@@ -128,7 +128,7 @@ pipe(() => 2)
 
 ## Typescript
 
-Pipeflow supports typescript. So if you wanna be declarative, you can pass the returning types of the callbacks using `parameter types` on the pipe methods:
+Pipeflow supports typescript. So if you wanna be declarative, you can pass the returning types of the callbacks using the `typescript parameter types` on the pipe methods:
 
 ```typescript
 import { pipe } from 'pipeflow.js'
