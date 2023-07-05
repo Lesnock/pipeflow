@@ -80,6 +80,21 @@ const result = await pipe(stringToUppercase)
     .get()
 ```
 
+## Async Functions/Promises
+
+Pipeflow will handle the promises out of the box.
+You can pass a promise as a pipe callback just like you would do with a syncronous callback:
+
+```javascript
+import { pipe } from 'pipeflow.js'
+
+await pipe(async () => makeSomeHttpRequest())
+    .pipe(result => new Promise(res => setTimeout(res, 1000)))
+    .get()
+```
+
+Each pipe will only be executed after the earlier promise callback has been resolved. 
+
 ## Conditional Pipe
 
 Piperflow supports conditional pipe. The `pipeIf` method receives a condition as its first parameter and the callback as the second parameter:
@@ -109,6 +124,54 @@ pipe(() => 2)
 pipe(() => 2)
     .pipeIf(() => condition, number => number * 2)
     .get()
+```
+
+## Typescript
+
+Pipeflow supports typescript. So if you wanna be declarative, you can pass the returning types of the callbacks using `parameter types` on the pipe methods:
+
+```typescript
+import { pipe } from 'pipeflow.js'
+
+const result = await pipe<string>(() => '123')
+    .pipe<number>(string => Number(string))
+    .get()
+
+console.log(typeof result) // Output: number
+```
+
+Pipeflow will automatically try to infer what is the type of the callbacks's return value. But, if you want to use custom types, you can declare it just like that:
+
+```typescript
+function loadCustomer(): Customer {
+    // Load customer...
+    // Return customer...
+}
+
+function checkCustomerIsValid(customer: Customer): boolean {
+    // Check customer is valid...
+    return true
+}
+
+const customerIsValid = await pipe<Customer>(loadCustomer)
+    .catch(handleError)
+    .pipe<boolean>(checkCustomerIsValid)
+    .get<boolean>()
+```
+
+In case your catch method has the `keepGoing: true` option, you can set the return type of the catch method too, so the next pipe can know what is the type of the injected data:
+
+```typescript
+await pipe<User>(loadUser)
+    .pipe<User>(handleUser)
+    .catch<User>((err: Error, user: User) => {
+        log(err)
+        return user
+    }, { keepGoing: true })
+    .pipe<boolean>((user: User) {
+        // Do some stuff with the user...
+    })
+    .get()    
 ```
 
 ## Contribution
