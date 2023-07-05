@@ -1,12 +1,17 @@
 {
     "name": "pipeflow.js",
-    "version": "0.3.7",
+    "version": "0.3.8",
     "description": "Write beautiful code using a super dynamic pipe chain",
     "main": "dist/index.js",
     "author": "Caio Lesnock <caio.dev@outlook.com>",
     "license": "MIT",
+    "homepage": "https://github.com/Lesnock/pipeflow.js#readme",
     "publishConfig": {
         "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Lesnock/pipeflow.js"
     },
     "scripts": {
         "test": "ts-mocha test/**/*.spec.ts",
