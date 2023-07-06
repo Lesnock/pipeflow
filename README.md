@@ -37,6 +37,21 @@ console.log(result); // Output: ['WORLD', 'HELLO']
 
 In this example, we create a pipe and chain multiple operations. Each callback function is executed in sequence, and the result is passed to the next operation. Finally, we call the `get()` method to start the pipe flow. The final result is returned to the user. Pipeflow will ever return a promise, so you have to `await` for the result.
 
+## Async Functions/Promises
+
+Pipeflow will handle the promises out of the box.
+You can pass a promise as a pipe callback just like you would do with a syncronous callback:
+
+```javascript
+import { pipe } from 'pipeflow.js'
+
+await pipe(async () => makeSomeHttpRequest())
+    .pipe(result => new Promise(res => setTimeout(res, 1000)))
+    .get()
+```
+
+Each pipe will only be executed after the earlier promise callback has been resolved. 
+
 ## Error Handling
 
 Pipeflow also supports error handling with the `catch()` method. Here's an example:
@@ -62,38 +77,21 @@ const result = await pipe(stringToUppercase)
     .catch(myErrorHandler)
     .get()
 
-console.log(result) // Output: undefined
+console.log(result) // Output: 'Handled error'
 ```
 
 In this example, we add an error handling function to the pipe using the `catch()` method. If an error occurs during the pipe execution, the error handling function will be called, and the error will be captured. 
 
 The `catch` method will always be **ONLY** attached to the last pipe.
 
-By default, when some error is thrown, the `catch` callback will be executed and the execution of the pipe will be stopped. If you want to keep the execution running even when some error occurs, you can pass `keepGoing: true` in the options object as the second parameter. The value returned from the catch callback will be injected in the next `pipe` call:
+When some error is thrown, the `catch` callback will be executed and the execution of the pipe will be **stopped** and the data that was returned from the `catch` callback will be returned to the user. If you want to keep the execution running even when some error occurs, you can use the `catchAndContinue`method. The value returned from the `catchAndContinue` callback will be injected in the next `pipe` call:
 
 ```javascript
-const result = await pipe(stringToUppercase)
-    .catch((err) => {
-        return 'Error happend'
-    }, { keepGoing: true })
+await pipe(stringToUppercase)
+    .catchAndContinue((err) => 'Error happend')
     .pipe(data => console.log(data)) // 'Error happend'
     .get()
 ```
-
-## Async Functions/Promises
-
-Pipeflow will handle the promises out of the box.
-You can pass a promise as a pipe callback just like you would do with a syncronous callback:
-
-```javascript
-import { pipe } from 'pipeflow.js'
-
-await pipe(async () => makeSomeHttpRequest())
-    .pipe(result => new Promise(res => setTimeout(res, 1000)))
-    .get()
-```
-
-Each pipe will only be executed after the earlier promise callback has been resolved. 
 
 ## Conditional Pipe
 

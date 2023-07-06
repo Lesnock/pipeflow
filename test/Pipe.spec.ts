@@ -49,8 +49,8 @@ describe('Pipe', () => {
         await pipe(() => {
             throw error
         })
-            .catch(() => {}, { keepGoing: true }) // eslint-disable-line
-            .pipe(pipeSpy) // eslint-disable-line
+            .catchAndContinue(() => {}) // eslint-disable-line
+            .pipe(pipeSpy)
             .get()
         assert.called(pipeSpy)
     })
@@ -104,5 +104,27 @@ describe('Pipe', () => {
             .pipe(pipeSpy)
             .get()
         assert.notCalled(pipeSpy)
+    })
+
+    it('should throw error on using catch 2 times', async () => {
+        expect(() => {
+            return pipe(() => 'anything')
+                .catch(() => {}) // eslint-disable-line
+                .catch(() => {}) // eslint-disable-line
+                .get()
+        }).to.throws(
+            'Catch callback already attached to the pipe. Only 1 catch is allowed for each pipe.'
+        )
+    })
+
+    it('should throw error on using catchAndContinue 2 times', async () => {
+        expect(() => {
+            return pipe(() => 'anything')
+                .catchAndContinue(() => {}) // eslint-disable-line
+                .catchAndContinue(() => {}) // eslint-disable-line
+                .get()
+        }).to.throws(
+            'Catch callback already attached to the pipe. Only 1 catch is allowed for each pipe.'
+        )
     })
 })

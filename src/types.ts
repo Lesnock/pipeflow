@@ -11,3 +11,8 @@ export type Condition<ArgumentType = any> =
     | boolean
     | ((data: ArgumentType) => boolean)
 export type PipeOptions = { stopOnFalse: boolean }
+export type IsExactlyUndefined<T> = T extends undefined
+    ? [undefined] extends [T]
+        ? true
+        : false
+    : false

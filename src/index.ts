@@ -8,3 +8,4 @@ export function pipe<ExportType = any>(
 }
 
 export { Pipe }
+export type { PipeCallback, Condition, PipeCatchCallback } from './types'

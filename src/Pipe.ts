@@ -5,24 +5,33 @@ import {
     Condition,
     PipeOptions,
     PromiseResult,
+    IsExactlyUndefined,
 } from './types'
 
-export class Pipe<InjectType = any, ExportType = any> {
+export class Pipe<
+    InjectType = any,
+    ExportType = any,
+    PossibleReturnTypes = undefined
+> {
     callback: {
         callback: PipeCallback<InjectType, ExportType>
         condition: Condition<InjectType>
     }
 
-    nextPipe: Pipe | null
+    private nextPipe: Pipe | null
 
-    previousPipe: Pipe | null
+    private previousPipe: Pipe | null
 
-    catchCallback: {
-        callback: PipeCatchCallback<ExportType>
+    private catchCallback: {
+        callback: PipeCatchCallback<InjectType>
         options: CatchOptions
     } | null
 
-    options: PipeOptions
+    private options: PipeOptions
+
+    hasPossibleBreak: boolean
+
+    isIf = false
 
     constructor(
         callback: PipeCallback,
@@ -34,6 +43,7 @@ export class Pipe<InjectType = any, ExportType = any> {
         this.nextPipe = null
         this.previousPipe = null
         this.options = { ...this.getPipeDefaultOptions(), ...options }
+        this.hasPossibleBreak = false
     }
 
     setPreviousPipe(previous: Pipe) {
@@ -44,8 +54,9 @@ export class Pipe<InjectType = any, ExportType = any> {
         this.nextPipe = next
     }
 
-    get<ReturnType = ExportType>(): Promise<ReturnType> {
-        return this.start()
+    // prettier-ignore
+    get<ReturnType = ExportType>(): IsExactlyUndefined<PossibleReturnTypes> extends true ? Promise<ReturnType> : Promise<ReturnType> | PossibleReturnTypes {
+        return this.start() as IsExactlyUndefined<PossibleReturnTypes> extends true ? Promise<ReturnType> : Promise<ReturnType> | PossibleReturnTypes
     }
 
     start() {
@@ -90,56 +101,96 @@ export class Pipe<InjectType = any, ExportType = any> {
         }
     }
 
-    pipe<NextPipeExportType = any>(
-        callback: PipeCallback<ExportType, NextPipeExportType>
-    ): Pipe<ExportType, PromiseResult<NextPipeExportType>> {
-        const pipe = new Pipe<ExportType, PromiseResult<NextPipeExportType>>(
-            callback,
-            true
-        )
+    pipe<PipeReturnType = any>(
+        callback: PipeCallback<ExportType, PipeReturnType>
+    ): Pipe<ExportType, PromiseResult<PipeReturnType>, PossibleReturnTypes> {
+        const pipe = new Pipe<
+            ExportType,
+            PromiseResult<PipeReturnType>,
+            PossibleReturnTypes
+        >(callback, true)
+        // @ts-ignore
         pipe.setPreviousPipe(this)
+        // @ts-ignore
         this.setNextPipe(pipe)
+        pipe.hasPossibleBreak = this.hasPossibleBreak
         return pipe
     }
 
-    pipeIf<NextPipeExportType = any>(
+    pipeIf<PipeReturnType = any>(
         condition: Condition<ExportType>,
-        callback: PipeCallback<ExportType, NextPipeExportType>,
-        options?: Partial<PipeOptions>
-    ): Pipe<ExportType, PromiseResult<NextPipeExportType>> {
-        const pipe = new Pipe<ExportType, PromiseResult<NextPipeExportType>>(
+        callback: PipeCallback<ExportType, PipeReturnType>,
+        options?: Partial<PipeOptions> & { stopOnFalse: true }
+    ): Pipe<
+        ExportType,
+        PromiseResult<PipeReturnType> | ExportType,
+        PossibleReturnTypes | PromiseResult<PipeReturnType>
+    >
+
+    pipeIf<PipeReturnType = any>(
+        condition: Condition<ExportType>,
+        callback: PipeCallback<ExportType, PipeReturnType>,
+        options?: Partial<PipeOptions> & { stopOnFalse: false }
+    ): Pipe<
+        ExportType,
+        PromiseResult<PipeReturnType> | ExportType,
+        PossibleReturnTypes
+    >
+
+    pipeIf<PipeReturnType = any>(
+        condition: Condition<ExportType>,
+        callback: PipeCallback<ExportType, PipeReturnType>,
+        options?: Partial<PipeOptions> & { stopOnFalse: boolean }
+    ): Pipe<
+        ExportType,
+        PromiseResult<PipeReturnType> | ExportType,
+        PossibleReturnTypes
+    > {
+        const pipe = new Pipe<ExportType, PromiseResult<PipeReturnType>>(
             callback,
             condition,
             options
         )
+        pipe.isIf = true
+        // @ts-ignore
         pipe.setPreviousPipe(this)
         this.setNextPipe(pipe)
+        pipe.hasPossibleBreak = this.hasPossibleBreak
+        if (options?.stopOnFalse) {
+            pipe.hasPossibleBreak = true
+        }
+        // @ts-ignore
         return pipe
     }
 
-    catch(errorHandlingCallback: PipeCatchCallback<ExportType>): this
-    catch<ReturnType>(errorHandlingCallback: PipeCatchCallback<ExportType, ReturnType>, options: CatchOptions & { keepGoing: false } ): this // prettier-ignore
-    catch<ReturnType>(errorHandlingCallback: PipeCatchCallback<ExportType, ReturnType>, options: CatchOptions & { keepGoing: true } ): Pipe<InjectType, ReturnType> // prettier-ignore
-    // prettier-ignore
-    catch<ReturnType>(errorHandlingCallback: PipeCatchCallback<ExportType, ReturnType>, options?: CatchOptions & { keepGoing?: boolean } ): this | Pipe<InjectType, ReturnType> {
-        const catchOptions: CatchOptions = {
-            ...this.getCatchDefaultOptions(),
-            ...options,
+    catch<ReturnType>(
+        errorHandlingCallback: PipeCatchCallback<InjectType, ReturnType>
+    ): Pipe<InjectType, ReturnType> {
+        if (this.catchCallback) {
+            throw new Error(
+                'Catch callback already attached to the pipe. Only 1 catch is allowed for each pipe.'
+            )
         }
         this.catchCallback = {
             callback: errorHandlingCallback,
-            options: catchOptions,
-        }
-        if (!catchOptions.keepGoing) {
-            return this
+            options: { keepGoing: false },
         }
         return this as unknown as Pipe<InjectType, ReturnType>
     }
 
-    private getCatchDefaultOptions(): CatchOptions {
-        return {
-            keepGoing: false,
+    catchAndContinue<ReturnType>(
+        errorHandlingCallback: PipeCatchCallback<InjectType, ReturnType>
+    ): Pipe<InjectType, ReturnType> {
+        if (this.catchCallback) {
+            throw new Error(
+                'Catch callback already attached to the pipe. Only 1 catch is allowed for each pipe.'
+            )
         }
+        this.catchCallback = {
+            callback: errorHandlingCallback,
+            options: { keepGoing: true },
+        }
+        return this as unknown as Pipe<InjectType, ReturnType>
     }
 
     private getPipeDefaultOptions(): PipeOptions {
