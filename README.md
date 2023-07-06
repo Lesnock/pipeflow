@@ -124,6 +124,18 @@ pipe(() => 2)
     .get()
 ```
 
+If you want to stop the flow when the condition is falsy, you can pass the `stopOnFalse: true` as the third argument of the `pipeIf`. In this case the flow will stop, and the Pipeflow will return the last value from the pipe. The subsequent pipes will be ignored.
+
+```javascript
+const condition = false
+
+const test = await pipe(() => 2)
+    .pipeIf(condition, number => number * 2, { stopOnFalse: true })
+    ...
+
+console.log(test) // Output: 2
+```
+
 ## Typescript
 
 Pipeflow supports typescript. So if you wanna be declarative, you can pass the returning types of the callbacks using the `typescript parameter types` on the pipe methods:
