@@ -169,15 +169,15 @@ const customerIsValid = await pipe<Customer>(loadCustomer)
     .get<boolean>()
 ```
 
-In case your catch method has the `keepGoing: true` option, you can set the return type of the catch method too, so the next pipe can know what is the type of the injected data:
+You can set the return type of the `catchAndContinue` method too, so the next pipe can know what is the type of the injected data:
 
 ```typescript
 await pipe<User>(loadUser)
     .pipe<User>(handleUser)
-    .catch<User>((err: Error, user: User) => {
+    .catchAndContinue<User>((err: Error, user: User) => {
         log(err)
         return user
-    }, { keepGoing: true })
+    })
     .pipe<boolean>((user: User) {
         // Do some stuff with the user...
     })
